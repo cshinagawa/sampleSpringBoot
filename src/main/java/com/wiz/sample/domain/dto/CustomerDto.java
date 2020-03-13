@@ -19,7 +19,7 @@ public class CustomerDto {
 
     private String customerName;
 
-    private String accout;
+    private String account;
 
     // TODO:JSONに必要な情報
     // TODO;セッターゲッター
@@ -45,8 +45,8 @@ public class CustomerDto {
         this.customerName = customerName;
     }
 
-    public void setAccout(String accout) {
-        this.accout = accout;
+    public void setAccount(String account) {
+        this.account = account;
     }
 
     public int getCustomerCode() {
@@ -57,7 +57,7 @@ public class CustomerDto {
         return customerName;
     }
 
-    public String getAccout() {
-        return accout;
+    public String getAccount() {
+        return account;
     }
 }
