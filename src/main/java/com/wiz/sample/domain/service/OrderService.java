@@ -1,8 +1,10 @@
 package com.wiz.sample.domain.service;
 
+import com.wiz.sample.domain.dto.OrderDto;
 import com.wiz.sample.domain.model.Customer;
 import com.wiz.sample.domain.model.Order;
 import com.wiz.sample.domain.repositories.OrderRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +14,10 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * オーダー 情報サービスクラス。
@@ -20,6 +25,7 @@ import java.util.List;
  * customer_listテーブルへのデータアクセスなどを行います。
  *
  * <br>
+ * TODO:ServiceとDao分ける<br>
  * TODO:クエリー実行回りの初期化を一カ所にまとめる。<br>
  * TODO:エラー処理
  *

@@ -96,8 +96,8 @@ public class CustomerService {
         // 検索対象エンティティ(ルート)
         Root<Customer> root = query.from(Customer.class);
 
-        // エンティティ絞り込み（この場合はcustomer_nameと指定の名称が等しいものを対象とする。）
-        query.select(root).where(builder.equal(root.get("customerName"), "鹿児島"));
+        // エンティティ絞り込み（この場合はcustomer_codeと指定の名称が等しいものを対象とする。）
+        query.select(root).where(builder.equal(root.get("customerCode"), customerCode));
 
         // クエリー生成、実行して結果を取得。
         result = entityManager.createQuery(query).getSingleResult();
