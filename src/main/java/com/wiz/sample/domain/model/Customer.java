@@ -1,8 +1,6 @@
 package com.wiz.sample.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
