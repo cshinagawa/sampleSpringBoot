@@ -1,7 +1,12 @@
 package com.wiz.sample.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 /**
@@ -21,18 +26,25 @@ public class Customer {
     /** カスタマーコード */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @NotEmpty(message = "{NotEmpty.customer.customerCode}")
     private int customerCode;
 
     /** 名前 */
-    @Column(length=4, nullable=false)
+    @NotEmpty(message = "{NotEmpty.customer.customerName}")
+    @Size(max=10, message = "{Size.customer.customerName}")
     private String customerName;
 
     /** 口座番号 */
-    @NotEmpty(message = "account:空白は不可")
+    @NotEmpty(message = "{NotEmpty.customer.account}")
     private String account;
+
+    /** バージョン */
+    @Version
+    private int version;
 
     /** オーダー情報リスト */
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Order> orderList;
 
     /**
@@ -57,6 +69,14 @@ public class Customer {
      */
     public void setAccount(String account) {
         this.account = account;
+    }
+
+    /**
+     * バージョン  setter。
+     * @param version
+     */
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     /**
@@ -89,6 +109,14 @@ public class Customer {
      */
     public String getAccount() {
         return account;
+    }
+
+    /**
+     * バージョン getter。
+     * @return バージョン
+     */
+    public int getVersion() {
+        return version;
     }
 
     /**

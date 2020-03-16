@@ -1,5 +1,7 @@
 package com.wiz.sample.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 
 /**
@@ -30,6 +32,7 @@ public class Order {
     /** カスタマー情報 */
     @ManyToOne
     @JoinColumn(name="customerCode")
+    @JsonBackReference
     private Customer customer;
 
     // JOINするプロパティは定義しない。

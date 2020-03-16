@@ -1,19 +1,20 @@
 package com.wiz.sample.app.customer;
 
+import com.wiz.sample.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -24,8 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMVCを利用したテストクラス。
  *
  * アプリケーションコンテキストをロードしてテストする。
- * （⇔スタンドアロンモードの場合は●の部分）
- * 　SpringBootTestアノテーションを指定
+ * （@SpringBootTestをつける。
+ * 　⇔スタンドアロンモードにする場合は●の部分を参照。
  *
  * TODO：JSONの内容をテストするには、@JsonTestでシリアライズ・でシリアライズできる
  *
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @Transactional
 @Rollback
+@Import(TestConfig.class)
 class CustomerControllerTest {
 
     /**
@@ -65,62 +67,100 @@ class CustomerControllerTest {
     void init() {
     }
 
+
 //    @Test
-//    void home() throws Exception {
-//        mockMvc.perform(get("/"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().string("Hello World!"));
-//    }
-// ●
-//    void home() throws Exception {
-//        mockMvc.perform(get("/"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().string("Hello World!"));
+//    void findAll() {
 //    }
 
+    // 指定されたリクエストに対して動作するか？
     @Test
-    void find() {
+    void すべてのカスタマー情報JSONを返すこと() {
     }
 
     @Test
-    void 指定したコードのカスタマー情報を取得できること() throws Exception {
-        System.out.println(System.getProperty("file.encoding") + "--------------------------------------------------");
-        System.out.println(mockMvc.perform(get("/customer/1000")) + "--------------------------------------------------");
+    void カスタマー情報が0件の場合は正しいメッセージJSONを返すこと() {
+    }
+
+//    @Test
+//    void findByCustomerCode() {
+//    }
+
+    @Test
+    void 該当するカスタマー情報JSONを返すこと() throws Exception {
+
         ResultActions result =
             mockMvc.perform(get("/customer/1000"))
                     .andExpect(status().isOk())
-                    .andExpect(content().string("{\"customerCode\":1000,\"customerName\":\"○×商事\",\"account\":\"000-1234\"}"));
-//                .andExpect(content().encoding("utf-8").string("{\"customerCode\":1000,\"customerName\":\"○×商事\",\"account\":\"000-1234\"}"));
-//        Customer customer = result.;
-
-//        Customer customer = restTemplate.getForObject("http://localhost:8080/customer/1000", Customer.class);
-//        System.out.println(customer.getCustomerName());
+                    .andExpect(content().string(
+                            "{\"errorCode\":null,\"customer\":{\"customerCode\":1000,\"customerName\":\"○×商事\",\"account\":\"000-1234\",\"version\":0}}"));
     }
 
     @Test
-    void findByCustomerCode() {
+    void リクエストデータにカスタマーコードが無い場合はメッセージを返すこと() {
+    }
+
+    @Test
+    void 該当するカスタマー情報がない場合はメッセージを返すこと() {
     }
 
     @Test
     void findByCustomerCodeOrCustomerName() {
     }
 
+//    @Test
+//    void insert() throws Exception {
+//    }
+
     @Test
-    void insert() throws Exception {
-            mockMvc.perform(MockMvcRequestBuilders.post("/customer/add")
-                    .content("{\"customerCode\": 1005,\"customerName\": \"鹿児島テレビ\",\"account\": \"444-4444\"}")
-                    .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().isOk());
-//                        .andExpect(content().string("{\"customerCode\":1000,\"customerName\":\"○×商事\",\"account\":\"000-1234\"}"));
-
-
+    void 登録できた場合は正しいレスポンスデータを返すこと() {
+//        mockMvc.perform(MockMvcRequestBuilders.post("/customer/add")
+//                .content("{\"customerCode\": 1005,\"customerName\": \"鹿児島テレビ\",\"account\": \"444-4444\"}")
+//                .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk());
+////                        .andExpect(content().string("{\"customerCode\":1000,\"customerName\":\"○×商事\",\"account\":\"000-1234\"}"));
     }
 
     @Test
-    void update() {
+    void バリデーションエラーの場合は登録せずにメッセージを返すこと() {
     }
 
     @Test
-    void delete() {
+    void 一意制約違反の場合は登録せずにメッセージを返すこと() {
+    }
+
+//    @Test
+//    void update() {
+//    }
+
+    @Test
+    void 更新できた場合は正しいレスポンスデータを返すこと() {
+    }
+
+    @Test
+    void 更新対象のカスタマー情報が存在しない場合は更新せずにメッセージを返すこと() {
+    }
+
+    @Test
+    void バリデーションエラーの場合は更新せずにメッセージを返すこと() {
+    }
+
+    @Test
+    void 排他エラーの場合は更新せずにメッセージを返すこと() {
+    }
+
+//    @Test
+//    void delete() {
+//    }
+
+    @Test
+    void 削除できた場合は正しいレスポンスデータを返すこと() {
+    }
+
+    @Test
+    void リクエストデータにカスタマーコードが無い場合は削除せずにメッセージを返すこと() {
+    }
+
+    @Test
+    void 削除対象のカスタマー情報が存在しない場合は削除せずにメッセージを返すこと() {
     }
 }

@@ -1,27 +1,20 @@
 package com.wiz.sample.app.customer;
 
-import com.wiz.sample.domain.dto.CustomerDto;
 import com.wiz.sample.domain.model.Customer;
-import com.wiz.sample.domain.model.Order;
 import com.wiz.sample.domain.service.CustomerService;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * カスタマー コントローラークラス。
- * <br>
- * （SpringBootのURLマッピングにより特定のコントローラーにハンドリングされます。）
- *
- * TODO:リクエストデータのチェック
- * TODO:エラー処理
  *
  * @version 1.00(2020/03/12)
  * @author C.Shinagawa
@@ -63,7 +56,11 @@ public class CustomerController {
     @ResponseBody
     public Map findAll() {
 
-        Map customerMap = this.getAllCustomer();
+        List customerList = customerService.findAllCustomer();
+
+        Map customerMap = new HashMap<>();
+        customerMap.put("message", null);
+        customerMap.put("customers", customerList);
 
         return customerMap;
     }
@@ -78,7 +75,11 @@ public class CustomerController {
     @ResponseBody
     public Map findByCustomerCode(@PathVariable int customerCode) {
 
-        Map customerMap = this.getCustomer(customerCode);
+        Customer customer = customerService.findCustomer(customerCode);
+
+        Map customerMap = new HashMap<>();
+        customerMap.put("message", null);
+        customerMap.put("customer", customer);
 
         return customerMap;
     }
@@ -87,20 +88,27 @@ public class CustomerController {
      * カスタマー情報登録 コントローラー
      *
      * @param resource カスタマー登録情報
+     * @param result バリデーションチェック結果
      * @return 登録結果
      */
     @RequestMapping(path="/customer/add", method= RequestMethod.POST)
     @ResponseBody
     @Transactional(readOnly = false)
-    public Map insert(@RequestBody Customer resource){
+    public Map insert(@Validated@RequestBody Customer resource, BindingResult result){
 
-        // TODO：入力エラーはコントローラーで処理する。
-        Customer customer = new Customer();
-        customer.setCustomerName(resource.getCustomerName());
-        customer.setAccount(resource.getAccount());
+        // 入力エラーの有無をチェック
+        Map errors = this.isValid(result);
+        if(errors != null) {
+            errors.put("customer", resource);
+            return errors;
+        }
 
         // エラーがなければ登録。
-        Map customerMap = this.insertCustomer(customer);
+        Customer customer = customerService.insert(resource);
+
+        Map customerMap = new HashMap<>();
+        customerMap.put("message", "登録されました。");
+        customerMap.put("customer", customer);
 
         return customerMap;
     }
@@ -109,21 +117,39 @@ public class CustomerController {
      * カスタマー情報更新 コントローラー
      *
      * @param resource カスタマー更新情報
+     * @param result バリデーションチェック結果
      * @return 更新結果
      */
     @RequestMapping(path="/customer/edit", method= RequestMethod.PUT)
     @ResponseBody
     @Transactional(readOnly = false)
-    public Map update(@RequestBody Customer resource){
+    public Map update(@Validated @RequestBody Customer resource, BindingResult result){
 
-        // TODO：SQL実行エラー処理
-        Customer customer = new Customer();
-        customer.setCustomerCode(resource.getCustomerCode());
-        customer.setCustomerName(resource.getCustomerName());
-        customer.setAccount(resource.getAccount());
+        // 入力エラーの有無をチェック
+        Map errors = this.isValid(result);
+        if(errors != null) {
+            errors.put("customer", resource);
+            return errors;
+        }
 
         // エラーがなければ更新。
-        Map customerMap = this.updateCustomer(customer);
+
+        Map customerMap = new HashMap<>();
+
+        // TODO:存在チェック　Springのエラーハンドリングでできるっぽい。
+
+        // 排他チェック
+        Customer customer = customerService.findCustomerByRepository(resource.getCustomerCode());
+        if(resource.getVersion() != customer.getVersion()) {
+            customerMap.put("message", "排他エラー。もう一度、更新処理をやり直してください。");
+            return customerMap;
+        }
+
+        // 更新
+        customer = customerService.update(resource);
+
+        customerMap.put("message", "更新されました。");
+        customerMap.put("customer", customer);
 
         return customerMap;
     }
@@ -139,122 +165,34 @@ public class CustomerController {
     @Transactional(readOnly = false)
     public Map delete(@PathVariable int customerCode) {
 
-        Map customerMap = this.deleteCustomer(customerCode);
-
-        return customerMap;
-    }
-
-    /**
-     * カスタマー情報 取得メソッド。
-     * <br>
-     * カスタマー情報を取得し、レスポンス用に変換します。
-     *
-     * @return カスタマー情報
-     */
-    private Map getCustomer(int customerCode) {
-
-        Map customerMap = new HashMap<>();
-
-        CustomerDto dto = new CustomerDto();
-        Customer customer = customerService.findCustomer(customerCode);
-
-        BeanUtils.copyProperties(customer, dto);
-
-        customerMap.put("errorCode", null);
-        customerMap.put("customer", dto);
-
-        return customerMap;
-    }
-
-    /**
-     * カスタマーリスト 取得メソッド。
-     * <br>
-     * カスタマーリストを取得し、レスポンス用に変換します。
-     *
-     * @return カスタマーリスト
-     */
-    private Map getAllCustomer() {
-
-        Map customerMap = new HashMap<>();
-
-        List customerList = customerService.findAllCustomer();
-
-        List<CustomerDto> dtoList = new ArrayList<>();
-        for(Object o : customerList) {
-            CustomerDto dto = new CustomerDto();
-            BeanUtils.copyProperties(o, dto);
-            dtoList.add(dto);
-        }
-
-        customerMap.put("errorCode", null);
-        customerMap.put("customers", dtoList);
-
-        return customerMap;
-    }
-
-    /**
-     * カスタマー 登録メソッド。
-     * <br>
-     * カスタマー情報を登録し、レスポンスデータを返します。
-     *
-     * @return 登録結果
-     */
-    private Map insertCustomer(Customer customer) {
-
-        Map customerMap = new HashMap<>();
-
-        Customer result = customerService.insert(customer);
-        CustomerDto dto = new CustomerDto();
-        BeanUtils.copyProperties(result, dto);
-
-        customerMap.put("errorCode", null);
-        customerMap.put("customer", dto);
-
-        return customerMap;
-    }
-
-    /**
-     * カスタマー 更新メソッド。
-     * <br>
-     * カスタマー情報を更新し、レスポンスデータを返します。
-     *
-     * @return 更新結果
-     */
-    private Map updateCustomer(Customer customer) {
-
-        Map customerMap = new HashMap<>();
-
-        Customer result = customerService.update(customer);
-        CustomerDto dto = new CustomerDto();
-        BeanUtils.copyProperties(result, dto);
-
-        customerMap.put("errorCode", null);
-        customerMap.put("customer", dto);
-
-        return customerMap;
-    }
-
-    /**
-     * カスタマー 削除メソッド。
-     * <br>
-     * カスタマー情報を削除し、レスポンスデータを返します。
-     *
-     * @return 削除結果
-     */
-    private Map deleteCustomer(int customerCode) {
-
-        Map customerMap = new HashMap<>();
-
         Customer customer = customerService.findCustomer(customerCode);
         customerService.delete(customer);
 
-        CustomerDto dto = new CustomerDto();
-        BeanUtils.copyProperties(customer, dto);
-
+        Map customerMap = new HashMap<>();
         customerMap.put("errorCode", null);
-        customerMap.put("customer", dto);
+        customerMap.put("customer", customer);
 
         return customerMap;
+    }
+
+    /**
+     * 入力チェックの有無により、入力エラーリストを返します。
+     * @param result バリデーションチェック結果
+     * @return エラー情報
+     */
+    private Map isValid(BindingResult result) {
+
+        Map errors = null;
+
+        if(result.hasErrors()) {
+            List errorList = result.getFieldErrors();
+
+            // TODO：エラー情報の形式
+            errors.put("message", "入力エラーがあります。確認してください。");
+            errors.put("errors", errorList);
+        }
+
+        return errors;
     }
 
 }
