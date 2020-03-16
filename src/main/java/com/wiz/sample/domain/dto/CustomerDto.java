@@ -2,6 +2,7 @@ package com.wiz.sample.domain.dto;
 
 import com.wiz.sample.domain.model.Order;
 
+import javax.persistence.Version;
 import java.util.List;
 
 /**
@@ -20,6 +21,8 @@ public class CustomerDto {
     private String customerName;
 
     private String account;
+
+    private int version;
 
 //    List<Order> orderList;
 //
@@ -41,6 +44,10 @@ public class CustomerDto {
         this.account = account;
     }
 
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
     public int getCustomerCode() {
         return customerCode;
     }
@@ -51,5 +58,9 @@ public class CustomerDto {
 
     public String getAccount() {
         return account;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }
