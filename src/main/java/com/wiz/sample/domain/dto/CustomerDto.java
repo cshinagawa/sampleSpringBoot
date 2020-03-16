@@ -21,21 +21,13 @@ public class CustomerDto {
 
     private String account;
 
-    // TODO:JSONに必要な情報
-    // TODO;セッターゲッター
-
-    List<Order> orderList;
-
-    private int orderNo;
-
-    private int productCode;
-
-    private int quantity;
-
-//    private int getDeptName() {
-//        return this.dept.getDeptName();
-//    }
-
+//    List<Order> orderList;
+//
+//    private int orderNo;
+//
+//    private int productCode;
+//
+//    private int quantity;
 
     public void setCustomerCode(int customerCode) {
         this.customerCode = customerCode;
