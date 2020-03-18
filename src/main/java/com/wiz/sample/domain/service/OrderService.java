@@ -25,7 +25,6 @@ import java.util.Map;
  * customer_listテーブルへのデータアクセスなどを行います。
  *
  * <br>
- * TODO:ServiceとDao分ける<br>
  * TODO:クエリー実行回りの初期化を一カ所にまとめる。<br>
  * TODO:エラー処理
  *

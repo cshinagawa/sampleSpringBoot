@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -44,13 +45,13 @@ public class CustomerService {
      * データへアクセスするインターフェース。
      */
     @Autowired
-    CustomerRepository repository;
+    private CustomerRepository repository;
 
     /**
      * エンティティを扱うインターフェース。
      */
     @PersistenceContext
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
     /**
      * カスタマー情報リスト 取得メソッド。
@@ -87,7 +88,7 @@ public class CustomerService {
      * @param customerCode カスタマーコード
      * @return 指定されたカスタマーコードに該当するカスタマー情報
      */
-    public Customer findCustomer(int customerCode) {
+    public Customer findCustomer(int customerCode) throws NoResultException {
 
         Customer result;
 
@@ -98,7 +99,7 @@ public class CustomerService {
         // 検索対象エンティティ(ルート)
         Root<Customer> root = query.from(Customer.class);
 
-        // エンティティ絞り込み（この場合はcustomer_codeと指定の名称が等しいものを対象とする。）
+        // エンティティ絞り込み（この場合はcustomer_codeが等しいものを対象とする。）
         query.select(root).where(builder.equal(root.get("customerCode"), customerCode));
 
         // クエリー生成、実行して結果を取得。
@@ -169,13 +170,8 @@ public class CustomerService {
      * @param customer カスタマー情報
      * @return 削除結果
      */
-    public boolean delete(Customer customer) {
-
-        // 更新処理の戻り値で登録結果を取得することも可能。
+    public void delete(Customer customer) {
         repository.delete(customer);
-
-        // TODO:結果
-        return true;
     }
 
     //-----------------------------------------------------
