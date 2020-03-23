@@ -5,10 +5,14 @@ import com.wiz.sample.domain.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.NoResultException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,11 +62,16 @@ public class CustomerController {
 
         List customerList = customerService.findAllCustomer();
 
-        Map customerMap = new HashMap<>();
-        customerMap.put("message", null);
-        customerMap.put("customers", customerList);
+        Map responseData = new HashMap<>();
+        if(customerList.size() > 0) {
+            responseData.put("success", true);
+            responseData.put("customers", customerList);
+        } else {
+            responseData.put("success", false);
+            responseData.put("message", "該当するカスタマー情報はありませんでした。");
+        }
 
-        return customerMap;
+        return responseData;
     }
 
     /**
@@ -75,13 +84,20 @@ public class CustomerController {
     @ResponseBody
     public Map findByCustomerCode(@PathVariable int customerCode) {
 
-        Customer customer = customerService.findCustomer(customerCode);
+        Map responseData = new HashMap<>();
+        Customer customer = new Customer();
+        try {
+            customer = customerService.findCustomer(customerCode);
+        } catch(NoResultException e) {
+            responseData.put("success", false);
+            responseData.put("message", "該当するカスタマー情報はありませんでした。");
+            return responseData;
+        }
 
-        Map customerMap = new HashMap<>();
-        customerMap.put("message", null);
-        customerMap.put("customer", customer);
+        responseData.put("success", true);
+        responseData.put("customer", customer);
 
-        return customerMap;
+        return responseData;
     }
 
     /**
@@ -96,21 +112,26 @@ public class CustomerController {
     @Transactional(readOnly = false)
     public Map insert(@Validated@RequestBody Customer resource, BindingResult result){
 
+        Map responseData = new HashMap<>();
+
         // 入力エラーの有無をチェック
         Map errors = this.isValid(result);
-        if(errors != null) {
-            errors.put("customer", resource);
-            return errors;
+        if(errors.size() > 0) {
+            responseData.put("success", false);
+            responseData.put("message", errors.get("message"));
+            responseData.put("errors", errors.get("errors"));
+            responseData.put("customer", resource);
+            return responseData;
         }
 
         // エラーがなければ登録。
         Customer customer = customerService.insert(resource);
 
-        Map customerMap = new HashMap<>();
-        customerMap.put("message", "登録されました。");
-        customerMap.put("customer", customer);
+        responseData.put("success", true);
+        responseData.put("message", "登録されました。");
+        responseData.put("customer", customer);
 
-        return customerMap;
+        return responseData;
     }
 
     /**
@@ -125,33 +146,36 @@ public class CustomerController {
     @Transactional(readOnly = false)
     public Map update(@Validated @RequestBody Customer resource, BindingResult result){
 
+        Map responseData = new HashMap<>();
+
         // 入力エラーの有無をチェック
         Map errors = this.isValid(result);
-        if(errors != null) {
-            errors.put("customer", resource);
-            return errors;
+        if(errors.size() > 0) {
+            responseData.put("success", false);
+            responseData.put("message", errors.get("message"));
+            responseData.put("errors", errors.get("errors"));
+            responseData.put("customer", resource);
+            return responseData;
         }
-
-        // エラーがなければ更新。
-
-        Map customerMap = new HashMap<>();
 
         // TODO:存在チェック　Springのエラーハンドリングでできるっぽい。
 
         // 排他チェック
         Customer customer = customerService.findCustomerByRepository(resource.getCustomerCode());
         if(resource.getVersion() != customer.getVersion()) {
-            customerMap.put("message", "排他エラー。もう一度、更新処理をやり直してください。");
-            return customerMap;
+            responseData.put("success", false);
+            responseData.put("message", "排他エラー。もう一度、更新処理をやり直してください。");
+            return responseData;
         }
 
-        // 更新
+        // エラーがなければ更新。
         customer = customerService.update(resource);
 
-        customerMap.put("message", "更新されました。");
-        customerMap.put("customer", customer);
+        responseData.put("success", true);
+        responseData.put("message", "更新されました。");
+        responseData.put("customer", customer);
 
-        return customerMap;
+        return responseData;
     }
 
     /**
@@ -168,11 +192,12 @@ public class CustomerController {
         Customer customer = customerService.findCustomer(customerCode);
         customerService.delete(customer);
 
-        Map customerMap = new HashMap<>();
-        customerMap.put("errorCode", null);
-        customerMap.put("customer", customer);
+        Map responseData = new HashMap<>();
+        responseData.put("success", true);
+        responseData.put("message", "削除されました。");
+        responseData.put("customer", customer);
 
-        return customerMap;
+        return responseData;
     }
 
     /**
@@ -182,17 +207,24 @@ public class CustomerController {
      */
     private Map isValid(BindingResult result) {
 
-        Map errors = null;
+        Map errorMessage = new HashMap();
 
         if(result.hasErrors()) {
-            List errorList = result.getFieldErrors();
+            List<FieldError> errors = result.getFieldErrors();
 
-            // TODO：エラー情報の形式
-            errors.put("message", "入力エラーがあります。確認してください。");
-            errors.put("errors", errorList);
+            List errorList = new ArrayList();
+            Map error = new HashMap();
+            for(FieldError fieldError : errors) {
+                error.put("field", fieldError.getField());
+                error.put("message", fieldError.getDefaultMessage());
+                errorList.add(error);
+            }
+
+            errorMessage.put("message", "入力エラーがあります。確認してください。");
+            errorMessage.put("errors", errorList);
         }
 
-        return errors;
+        return errorMessage;
     }
 
 }
