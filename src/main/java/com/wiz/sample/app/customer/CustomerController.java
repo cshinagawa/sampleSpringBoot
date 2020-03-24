@@ -2,6 +2,7 @@ package com.wiz.sample.app.customer;
 
 import com.wiz.sample.domain.model.Customer;
 import com.wiz.sample.domain.service.CustomerService;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -24,6 +25,7 @@ import java.util.Map;
  * @author C.Shinagawa
  */
 @RestController
+@Api(tags = "customer")
 public class CustomerController {
 
     /**
@@ -56,7 +58,14 @@ public class CustomerController {
      *
      * @return カスタマー情報リスト
      */
-    @RequestMapping(path="/customer", method= RequestMethod.GET)
+    @ApiOperation(value = "カスタマー情報を取得する。", nickname = "findAll", notes = "")
+    @ApiResponses(value = { @ApiResponse(code = 200,
+            message = "リクエストが成功した場合",
+            response = Customer.class,
+            responseContainer = "List") })
+    @RequestMapping(path="/customer",
+            method= RequestMethod.GET,
+            produces = { "application/json" })
     @ResponseBody
     public Map findAll() {
 

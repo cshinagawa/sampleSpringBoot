@@ -3,6 +3,7 @@ package com.wiz.sample.app.order;
 import com.wiz.sample.domain.dto.OrderDto;
 import com.wiz.sample.domain.model.Order;
 import com.wiz.sample.domain.service.OrderService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,7 @@ import java.util.Map;
  * @author C.Shinagawa
  */
 @RestController
+@Api(tags = "order")
 public class OrderController {
 
     /**
